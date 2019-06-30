@@ -5,7 +5,7 @@ def check_connection(ip_address):
     d = SlcDriver()
     try:
         if d.open(ip_address):
-            return 'Connection Successful'
+            return True
     except Exception as e:
         return e
 

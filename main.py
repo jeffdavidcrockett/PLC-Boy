@@ -13,8 +13,61 @@ class Page(Frame):
 class MainPage(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
-        label = Label(self, text='This is page 1')
-        label.pack(side='top', fill='both', expand=True)
+        self.curr_ip_address = None
+        self.create_widgets()
+
+    def create_widgets(self):
+        # create page description label
+        page_descrip = Label(self, text='Extract to Spreadsheet', font=('Consolas', 24))
+        page_descrip.grid(row=1, column=0, pady=(30, 0))
+
+        button_frame = Frame(self)
+        button_frame.grid(row=2, column=0, sticky='W', pady=(10, 0))
+
+        add_bits_btn = Button(button_frame, text='Add Bits to Spreadsheet', command=self.add_bits_window)
+        set_ip_btn = Button(button_frame, text='Set IP Address', command=self.set_ip_window)
+
+        self.ip_label = Label(button_frame, text='Current IP: ' + str(self.curr_ip_address))
+
+        add_bits_btn.pack(side='left', padx=(0, 10))
+        set_ip_btn.pack(side='left')
+        self.ip_label.pack(side='left', padx=(10, 0))
+
+    def add_bits_window(self):
+        add_window = Toplevel(self.master)
+        add_window.geometry('500x500')
+
+    def set_ip_window(self):
+        # create set ip address window and widgets
+        self.ip_window = Toplevel(self.master)
+        self.ip_window.geometry('300x100')
+
+        ip_label = Label(self.ip_window, text='IP Address:')
+        self.ip_entry = Entry(self.ip_window)
+        ip_submit_btn = Button(self.ip_window, text='Submit', command=self.set_ip)
+
+        ip_label.grid(row=0, column=0, padx=(20,0), pady=(30,0))
+        self.ip_entry.grid(row=0, column=1, pady=(30,0))
+        ip_submit_btn.grid(row=1, column=1, pady=(10, 0))
+
+    def set_ip(self):
+        ip_check = scripts.check_connection(self.ip_entry.get())
+        if ip_check is True:
+            self.curr_ip_address = self.ip_entry.get()
+            self.ip_label['text'] = 'Current IP: ' + str(self.curr_ip_address)
+            self.ip_window.destroy()
+        else:
+            self.create_warning_window(ip_check)
+
+    def create_warning_window(self, warning):
+        self.warn_window = Toplevel(self.master)
+        self.warn_window.geometry('300x100')
+
+        warn_label = Label(self.warn_window, text=warning)
+        acknowledge_btn = Button(self.warn_window, text='Acknowledge', command=self.warn_window.destroy)
+
+        warn_label.pack()
+        acknowledge_btn.pack()
 
 
 class FuturePage2(Page):
@@ -48,7 +101,7 @@ class MainWindow(Frame):
         p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        b1 = Button(buttonframe, text='Main', command=p1.lift)
+        b1 = Button(buttonframe, text='Main', command=p1.show)
         b2 = Button(buttonframe, text='Reserved', command=p2.show)
         b3 = Button(buttonframe, text='Reserved', command=p3.show)
 
@@ -57,6 +110,9 @@ class MainWindow(Frame):
         b3.pack(side='left')
 
         p1.show()
+
+    def close_window(self, window):
+        window.destroy()
 
     def create_topmenu(self):
         # create main menu bar
@@ -70,11 +126,13 @@ class MainWindow(Frame):
 
         # create options menu with commands
         optionsmenu = Menu(menubar, tearoff=0)
+
         optionsmenu.add_command(label='Check PLC Connection', command=self.check_conn_window)
+
         menubar.add_cascade(label='Options', menu=optionsmenu)
 
     def check_conn_window(self):
-        # create check connection window
+        # create check connection window and widgets
         conn_window = Toplevel(self.master)
         conn_window.geometry('500x150')
 
