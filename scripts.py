@@ -10,3 +10,51 @@ def check_connection(ip_address):
         return e
 
 
+def generate_values(upto):
+    nums = []
+    for i in range(upto):
+        nums.append(i)
+
+    return nums
+
+
+class Xcl:
+    def __init__(self):
+        self.tag_queue = []
+
+    def queue_tag(self, tag):
+        self.tag_queue.append(tag)
+
+    def clear_queue(self):
+        self.tag_queue = []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
