@@ -141,8 +141,11 @@ class MainPage(Page):
         submit_frame = Frame(box_frame3)
         submit_frame.pack(side='top')
 
-        submit_btn = Button(submit_frame, text='Add Tag', command=self.get_values)
-        submit_btn.pack(side='left')
+        add_btn = Button(submit_frame, text='Add Tag', command=self.get_values)
+        add_btn.pack(side='left', padx=(0, 10))
+
+        remove_btn = Button(submit_frame, text='Remove Tag', command=self.remove_tag)
+        remove_btn.pack(side='left')
 
     def add_values_window(self):
         pass
@@ -325,6 +328,18 @@ class MainPage(Page):
         elif check_val == 110:
             self.values_warning_window('Need a bit with Binary type!')
 
+    def remove_tag(self):
+        data_val = self.svar_data.get()
+        file_val = self.file_num.get()
+        word_val = self.word_entry.get()
+        bit_val = self.bit_entry.get()
+
+        if data_val == 'N' or data_val == 'F':
+            self.xcl.remove_tag(data_val + file_val + ':' + word_val)
+        elif data_val == 'B':
+            self.xcl.remove_tag(data_val + file_val + ':' + word_val + '/' + bit_val)
+        self.get_values_queue()
+
     def values_warning_window(self, warning):
         value_warning = Toplevel(self.master)
         value_warning.geometry('350x100')
@@ -350,7 +365,7 @@ class MainPage(Page):
 
         warn_label.pack(pady=(10, 0))
         ok_btn.pack(pady=(10, 0))
-        cancel_btn.pack(pady=(10, 0))
+        cancel_btn.pack(pady=(5, 10))
 
     def clear_queue_nclose(self):
         self.xcl.clear_queue()

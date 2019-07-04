@@ -43,14 +43,15 @@ class Xcl:
 
         return False
 
-
     def clear_queue(self):
         self.tag_queue = {'I': [], 'O': [], 'B': [],
                           'N': [], 'F': []}
 
-
-# test = Xcl()
-# print test.tags_is_empty()
+    def remove_tag(self, tag):
+        for key in self.tag_queue.keys():
+            if tag in self.tag_queue[key]:
+                tag_index = self.tag_queue[key].index(tag)
+                self.tag_queue[key].pop(tag_index)
 
 
 
