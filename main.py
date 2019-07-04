@@ -141,99 +141,22 @@ class MainPage(Page):
         submit_frame = Frame(box_frame3)
         submit_frame.pack(side='top')
 
+        extract_frame = Frame(box_frame3)
+        extract_frame.pack(side='bottom', pady=(30, 0))
+
         add_btn = Button(submit_frame, text='Add Tag', command=self.get_values)
         add_btn.pack(side='left', padx=(0, 10))
 
         remove_btn = Button(submit_frame, text='Remove Tag', command=self.remove_tag)
         remove_btn.pack(side='left')
 
-    def add_values_window(self):
-        pass
-        # add_window = Toplevel(self.master)
-        # add_window.geometry('300x200')
-        # add_window.title('Add Values')
-        #
-        # box_frame1 = Frame(add_window)
-        # box_frame1.pack(side='top', fill='x', expand=False, padx=(5, 0), pady=(10, 0))
-        #
-        # box_frame2 = Frame(add_window)
-        # box_frame2.pack(side='top', fill='x', expand=False, padx=(5, 0), pady=(20, 0))
-        #
-        # box_frame3 = Frame(add_window)
-        # box_frame3.pack(side='top', fill='x', expand=False, padx=(5, 0), pady=(20, 0))
-        #
-        # # Frames and widgets for box frame 1
-        # data_type_frame = Frame(box_frame1)
-        # data_type_frame.pack(side='left', expand=False)
-        #
-        # file_num_frame = Frame(box_frame1)
-        # file_num_frame.pack(side='left', padx=(5, 0), expand=False)
-        #
-        # word_frame = Frame(box_frame1)
-        # word_frame.pack(side='left', padx=(5, 0), expand=False)
-        #
-        # bit_frame = Frame(box_frame1)
-        # bit_frame.pack(side='left', padx=(5, 0), expand=False)
-        #
-        # data_label = Label(data_type_frame, text='Data Type')
-        # data_label.pack(side='top')
-        #
-        # data_types = ['I', 'O', 'B', 'N', 'F']
-        # self.svar_data = StringVar()
-        # self.svar_data.set(data_types[0])
-        # self.data_menu = OptionMenu(data_type_frame, self.svar_data, *data_types)
-        # self.data_menu.pack()
-        #
-        # file_num_label = Label(file_num_frame, text='File #')
-        # file_num_label.pack(side='top')
-        #
-        # self.file_num = Entry(file_num_frame, width=5)
-        # self.file_num.pack(side='bottom')
-        #
-        # word_label = Label(word_frame, text='Word')
-        # word_label.pack(side='top')
-        #
-        # self.word_entry = Entry(word_frame, width=5)
-        # self.word_entry.pack()
-        #
-        # bit_label = Label(bit_frame, text='Bit')
-        # bit_label.pack(side='top')
-        #
-        # self.bit_entry = Entry(bit_frame, width=5)
-        # self.bit_entry.pack()
-        #
-        # # Frames and widgets for box frame 2
-        # through_frame = Frame(box_frame2)
-        # through_frame.pack(side='left', expand=False)
-        #
-        # word_frame2 = Frame(box_frame2)
-        # word_frame2.pack(side='left', padx=(15, 0), expand=False)
-        #
-        # bit_frame2 = Frame(box_frame2)
-        # bit_frame2.pack(side='left', padx=(5, 0), expand=False)
-        #
-        # self.through_var = IntVar()
-        # through_check = Checkbutton(through_frame, text='Through', variable=self.through_var)
-        # through_check.pack(side='left')
-        #
-        # word_label2 = Label(word_frame2, text='Word')
-        # word_label2.pack(side='top')
-        #
-        # self.word_entry2 = Entry(word_frame2, width=5)
-        # self.word_entry2.pack()
-        #
-        # bit_label2 = Label(bit_frame2, text='Bit')
-        # bit_label2.pack(side='top')
-        #
-        # self.bit_entry2 = Entry(bit_frame2, width=5)
-        # self.bit_entry2.pack()
-        #
-        # # Frames and widgets for box frame 3
-        # submit_frame = Frame(box_frame3)
-        # submit_frame.pack(side='top')
-        #
-        # submit_btn = Button(submit_frame, text='Submit', command=self.get_values)
-        # submit_btn.pack(side='left')
+        extract_btn = Button(extract_frame, text='EXTRACT', height=5,
+                             bg='grey', font='Helvetica 9 bold', command=self.extract_to_sheet)
+        extract_btn.pack(side='left')
+
+        ext_on_trigger_btn = Button(extract_frame, text='EXTRACT on Trigger',
+                                    height=5, bg='grey', font='Helvetica 9 bold')
+        ext_on_trigger_btn.pack(side='left', padx=(5, 0))
 
     def set_ip_window(self):
         # create set ip address window and widgets
@@ -372,19 +295,22 @@ class MainPage(Page):
         self.get_values_queue()
         self.clear_warning.destroy()
 
-
-class FuturePage2(Page):
-    def __init__(self, *args, **kwargs):
-        Page.__init__(self, *args, **kwargs)
-        label = Label(self, text='Reserved')
-        label.pack(side='top', fill='both', expand=True)
+    def extract_to_sheet(self):
+        self.xcl.extract_to_xclfile()
 
 
-class FuturePage3(Page):
-    def __init__(self, *args, **kwargs):
-        Page.__init__(self, *args, **kwargs)
-        label = Label(self, text='Reserved')
-        label.pack(side='top', fill='both', expand=True)
+# class FuturePage2(Page):
+#     def __init__(self, *args, **kwargs):
+#         Page.__init__(self, *args, **kwargs)
+#         label = Label(self, text='Reserved')
+#         label.pack(side='top', fill='both', expand=True)
+#
+#
+# class FuturePage3(Page):
+#     def __init__(self, *args, **kwargs):
+#         Page.__init__(self, *args, **kwargs)
+#         label = Label(self, text='Reserved')
+#         label.pack(side='top', fill='both', expand=True)
 
 
 class MainWindow(Frame):
@@ -392,25 +318,25 @@ class MainWindow(Frame):
         Frame.__init__(self, *args, **kwargs)
         self.create_topmenu()
         p1 = MainPage(self)
-        p2 = FuturePage2(self)
-        p3 = FuturePage3(self)
+        # p2 = FuturePage2(self)
+        # p3 = FuturePage3(self)
 
-        buttonframe = Frame(self)
+        # buttonframe = Frame(self)
         container = Frame(self)
-        buttonframe.pack(side='top', fill='x', expand=False)
+        # buttonframe.pack(side='top', fill='x', expand=False)
         container.pack(side='top', fill='both', expand=True)
 
         p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        # p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        # p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        b1 = Button(buttonframe, text='Main', command=p1.show)
-        b2 = Button(buttonframe, text='Reserved', command=p2.show)
-        b3 = Button(buttonframe, text='Reserved', command=p3.show)
+        # b1 = Button(buttonframe, text='Main', command=p1.show)
+        # b2 = Button(buttonframe, text='Reserved', command=p2.show)
+        # b3 = Button(buttonframe, text='Reserved', command=p3.show)
 
-        b1.pack(side='left', padx=(5, 0), pady=(5, 0))
-        b2.pack(side='left', pady=(5, 0))
-        b3.pack(side='left', pady=(5, 0))
+        # b1.pack(side='left', padx=(5, 0), pady=(5, 0))
+        # b2.pack(side='left', pady=(5, 0))
+        # b3.pack(side='left', pady=(5, 0))
 
         p1.show()
 
