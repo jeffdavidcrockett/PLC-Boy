@@ -1,9 +1,12 @@
 
 
 
-my_list = []
+test = {'F': [1, 2], 'N': [3]}
 
-print len(my_list)
+for val in test.values():
+    if 2 in val:
+        print 'True'
+    else:
+        print 'False'
 
-if len(my_list) is 0:
-    print True
+
