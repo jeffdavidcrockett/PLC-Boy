@@ -1,8 +1,8 @@
 from Tkinter import *
 import scripts
-from scripts import Xcl
+from scripts import Xcl, Slc
 import threading
-
+import time
 
 class StoppableThread(threading.Thread):
     def __init__(self, target=None):
@@ -34,6 +34,7 @@ class MainPage(Page):
         self.clear_warning = None
         self.spreadsheet_vals = []
         self.msg_selector = None
+        self.slc_tool = Slc()
         self.xcl = Xcl()
         self.get_values_queue()
 
@@ -62,7 +63,7 @@ class MainPage(Page):
         set_ip_btn.pack(side='left')
         self.ip_label.pack(side='left', padx=(10, 0))
 
-        values_label = Label(values_frame, text='Values in Queue', font='Helvetica 13 bold')
+        values_label = Label(values_frame, text='Queue', font='Helvetica 13 bold')
         values_label.pack(side='top')
 
         values_scroll = Scrollbar(values_frame)
@@ -183,6 +184,7 @@ class MainPage(Page):
         self.ip_window = Toplevel(self.master)
         self.ip_window.geometry('300x100')
         self.ip_window.title('Set IP Address')
+        self.ip_window.grab_set()
 
         ip_label = Label(self.ip_window, text='IP Address:')
         ip_entry = Entry(self.ip_window)
@@ -421,22 +423,28 @@ class MainPage(Page):
 
     def extract_to_sheet(self):
         if self.ip_set_check():
-            self.xcl.extract_to_xclfile(self.curr_ip_address)
+            self.slc_tool.set_ip_address(self.curr_ip_address)
+            self.slc_tool.open_connection()
+            self.xcl.extract_to_xclfile(self.slc_tool)
+            self.slc_tool.close_connection()
 
     def extract_on_trigger(self, d_val, f_val, w_val, b_val, trig_choice, val_entry, state):
         self.trigger_scanning_window = Toplevel(self.master)
-        self.trigger_scanning_window.geometry('350x240')
+        self.trigger_scanning_window.geometry('350x100')
         self.trigger_scanning_window.title('Set Trigger')
+        self.trigger_scanning_window.grab_set()
 
         scanning_label1 = Label(self.trigger_scanning_window, text='Currently scanning.')
         scanning_label2 = Label(self.trigger_scanning_window,
                                 text='Will cease when triggered or kill button is clicked')
+        self.scanning_label3 = Label(self.trigger_scanning_window, text='RUNNING', bg='green')
 
         scan_kill_btn = Button(self.trigger_scanning_window, text='Kill Scan',
                                command=self.scan_kill)
 
         scanning_label1.pack(side='top')
         scanning_label2.pack(side='top')
+        self.scanning_label3.pack(side='top')
         scan_kill_btn.pack(side='top', pady=(5, 0))
 
         if self.ip_set_check():
@@ -445,17 +453,36 @@ class MainPage(Page):
             else:
                 trig_tag = d_val + f_val + ':' + w_val
 
-            self.thread = StoppableThread(target=lambda: self.xcl.extract_on_trigger(self.curr_ip_address,
-                                                                                     trig_tag, trig_choice,
-                                                                                     val_entry, state))
-            self.thread.daemon = True
-            self.thread.start()
+            self.thread1 = StoppableThread(target=lambda: self.look_for_trigger(trig_tag, trig_choice,
+                                                                                val_entry, state))
+
+            self.thread1.daemon = True
+            self.thread1.start()
 
     def scan_kill(self):
-        self.xcl.stop_thread = True
+        self.stop_thread = True
         self.trigger_scanning_window.destroy()
         self.trigger_window.destroy()
-        self.xcl.stop_thread = False
+
+    def look_for_trigger(self, trig_tag, trig_choice, value, state):
+        self.slc_tool.set_ip_address(self.curr_ip_address)
+        self.slc_tool.open_connection()
+        self.stop_thread = False
+
+        if trig_choice == 1:
+            while not self.stop_thread:
+                if self.slc_tool.get_tag_value(trig_tag) == int(value):
+                    self.xcl.extract_to_xclfile(self.slc_tool)
+                    self.stop_thread = True
+                    self.scanning_label3.config(text='TRIGGERED', bg='red')
+        elif trig_choice == 2:
+            while not self.stop_thread:
+                if self.slc_tool.get_tag_value(trig_tag) == state:
+                    self.xcl.extract_to_xclfile(self.slc_tool)
+                    self.stop_thread = True
+                    self.scanning_label3.config(text='TRIGGERED', bg='red')
+        self.slc_tool.close_connection()
+
 
     def ip_set_check(self):
         if self.curr_ip_address:
@@ -529,6 +556,7 @@ class MainWindow(Frame):
         # create check connection window and widgets
         conn_window = Toplevel(self.master)
         conn_window.geometry('500x150')
+        conn_window.grab_set()
 
         ip_label = Label(conn_window, text='IP Address:')
         ip_label.grid(row=0, column=0, pady=30)

@@ -21,17 +21,21 @@ def generate_values(upto):
 
 
 class Slc:
-    def __init__(self, ip):
+    def __init__(self):
         self.cur = SlcDriver()
-        self.ip_address = ip
-        self.cur.open(ip)
+        self.ip_address = None
 
     def get_tag_value(self, tag):
-
         return self.cur.read_tag(tag)
+
+    def open_connection(self):
+        self.cur.open(self.ip_address)
 
     def close_connection(self):
         self.cur.close()
+
+    def set_ip_address(self, ip):
+        self.ip_address = ip
 
 
 class Xcl:
@@ -44,7 +48,6 @@ class Xcl:
         self.style3 = xlwt.easyxf('font: name Arial; align: horiz left')
         self.sheet_name = 'PLC Values'
         self.file_name = 'test.xls'
-        self.stop_thread = False
 
     def queue_tag(self, tag):
         for key in self.tag_queue.keys():
@@ -83,10 +86,9 @@ class Xcl:
                 tag_index = self.tag_queue[key].index(tag)
                 self.tag_queue[key].pop(tag_index)
 
-    def extract_to_xclfile(self, ip):
+    def extract_to_xclfile(self, slc_tool):
         wb = xlwt.Workbook()
         ws = wb.add_sheet(self.sheet_name)
-        slc_tool = Slc(ip)
 
         ws.write(0, 0, 'Time', self.style0)
         ws.write(3, 0, 'Tag', self.style0)
@@ -104,22 +106,21 @@ class Xcl:
                 row_start += 1
 
         wb.save(self.file_name)
-        slc_tool.close_connection()
 
-    def extract_on_trigger(self, ip, trig_tag, trig_choice, value, state):
-        slc_tool = Slc(ip)
-
-        if trig_choice == 1:
-            while not self.stop_thread:
-                if slc_tool.get_tag_value(trig_tag) == int(value):
-                    self.extract_to_xclfile(ip)
-                    self.stop_thread = True
-                    slc_tool.close_connection()
-        elif trig_choice == 2:
-            while not self.stop_thread:
-                if slc_tool.get_tag_value(trig_tag) == state:
-                    self.extract_to_xclfile(ip)
-                    break
+    # def extract_on_trigger(self, ip, trig_tag, trig_choice, value, state):
+    #     slc_tool = Slc(ip)
+    #
+    #     if trig_choice == 1:
+    #         while not self.stop_thread:
+    #             if slc_tool.get_tag_value(trig_tag) == int(value):
+    #                 self.extract_to_xclfile(ip)
+    #                 self.stop_thread = True
+    #                 slc_tool.close_connection()
+    #     elif trig_choice == 2:
+    #         while not self.stop_thread:
+    #             if slc_tool.get_tag_value(trig_tag) == state:
+    #                 self.extract_to_xclfile(ip)
+    #                 break
 
 
 
