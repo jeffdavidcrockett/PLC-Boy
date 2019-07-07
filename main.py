@@ -432,12 +432,12 @@ class MainPage(Page):
         scanning_label2 = Label(self.trigger_scanning_window,
                                 text='Will cease when triggered or kill button is clicked')
 
-        scan_kill_btn = Button(self.trigger_scanning_window, text='Kill',
+        scan_kill_btn = Button(self.trigger_scanning_window, text='Kill Scan',
                                command=self.scan_kill)
 
         scanning_label1.pack(side='top')
         scanning_label2.pack(side='top')
-        scan_kill_btn.pack(side='top')
+        scan_kill_btn.pack(side='top', pady=(5, 0))
 
         if self.ip_set_check():
             if len(b_val) > 0:
@@ -455,6 +455,7 @@ class MainPage(Page):
         self.xcl.stop_thread = True
         self.trigger_scanning_window.destroy()
         self.trigger_window.destroy()
+        self.xcl.stop_thread = False
 
     def ip_set_check(self):
         if self.curr_ip_address:

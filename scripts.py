@@ -30,6 +30,9 @@ class Slc:
 
         return self.cur.read_tag(tag)
 
+    def close_connection(self):
+        self.cur.close()
+
 
 class Xcl:
     def __init__(self):
@@ -101,6 +104,7 @@ class Xcl:
                 row_start += 1
 
         wb.save(self.file_name)
+        slc_tool.close_connection()
 
     def extract_on_trigger(self, ip, trig_tag, trig_choice, value, state):
         slc_tool = Slc(ip)
@@ -109,14 +113,15 @@ class Xcl:
             while not self.stop_thread:
                 if slc_tool.get_tag_value(trig_tag) == int(value):
                     self.extract_to_xclfile(ip)
-                    break
-                print slc_tool.get_tag_value(trig_tag)
-                sleep(2)
+                    self.stop_thread = True
+                    slc_tool.close_connection()
         elif trig_choice == 2:
             while not self.stop_thread:
                 if slc_tool.get_tag_value(trig_tag) == state:
                     self.extract_to_xclfile(ip)
                     break
+
+
 
 
 
