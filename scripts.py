@@ -1,5 +1,6 @@
 from pycomm.ab_comm.slc import Driver as SlcDriver
 import xlwt
+from time import sleep
 
 
 def check_connection(ip_address):
@@ -34,6 +35,13 @@ class Xcl:
     def __init__(self):
         self.tag_queue = {'I': [], 'O': [], 'B': [],
                           'N': [], 'F': []}
+        self.style0 = xlwt.easyxf('font: name Arial, color-index red, bold on')
+        self.style1 = xlwt.easyxf('font: name Arial')
+        self.style2 = xlwt.easyxf('font: name Arial, bold on')
+        self.style3 = xlwt.easyxf('font: name Arial; align: horiz left')
+        self.sheet_name = 'PLC Values'
+        self.file_name = 'test.xls'
+        self.stop_thread = False
 
     def queue_tag(self, tag):
         for key in self.tag_queue.keys():
@@ -72,38 +80,43 @@ class Xcl:
                 tag_index = self.tag_queue[key].index(tag)
                 self.tag_queue[key].pop(tag_index)
 
-    def extract_to_xclfile(self):
+    def extract_to_xclfile(self, ip):
         wb = xlwt.Workbook()
-        ws = wb.add_sheet('PLC Values')
-        slc_tool = Slc()
+        ws = wb.add_sheet(self.sheet_name)
+        slc_tool = Slc(ip)
 
-        style0 = xlwt.easyxf('font: name Arial, color-index red, bold on')
-        style1 = xlwt.easyxf('font: name Arial')
-        style2 = xlwt.easyxf('font: name Arial, bold on')
-        style3 = xlwt.easyxf('font: name Arial; align: horiz left')
-
-        ws.write(0, 0, 'Time', style0)
-        ws.write(3, 0, 'Tag', style0)
-        ws.write(3, 1, 'Value', style0)
+        ws.write(0, 0, 'Time', self.style0)
+        ws.write(3, 0, 'Tag', self.style0)
+        ws.write(3, 1, 'Value', self.style0)
 
         row_start = 4
         for key, value in self.tag_queue.items():
             if len(value) != 0:
-                ws.write(row_start, 0, key, style2)
+                ws.write(row_start, 0, key, self.style2)
                 row_start += 1
                 for i in range(len(value)):
-                    ws.write(row_start, 0, value[i], style1)
-                    ws.write(row_start, 1, slc_tool.get_tag_value(value[i]), style3)
+                    ws.write(row_start, 0, value[i], self.style1)
+                    ws.write(row_start, 1, slc_tool.get_tag_value(value[i]), self.style3)
                     row_start += 1
                 row_start += 1
 
+        wb.save(self.file_name)
 
+    def extract_on_trigger(self, ip, trig_tag, trig_choice, value, state):
+        slc_tool = Slc(ip)
 
-        wb.save('test.xls')
-
-# test = Xcl()
-# test.extract_to_xclfile()
-
+        if trig_choice == 1:
+            while not self.stop_thread:
+                if slc_tool.get_tag_value(trig_tag) == int(value):
+                    self.extract_to_xclfile(ip)
+                    break
+                print slc_tool.get_tag_value(trig_tag)
+                sleep(2)
+        elif trig_choice == 2:
+            while not self.stop_thread:
+                if slc_tool.get_tag_value(trig_tag) == state:
+                    self.extract_to_xclfile(ip)
+                    break
 
 
 
