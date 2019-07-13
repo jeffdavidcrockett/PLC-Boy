@@ -1,6 +1,5 @@
 from pycomm.ab_comm.slc import Driver as SlcDriver
 import xlwt
-from time import sleep
 
 
 def check_connection(ip_address):
@@ -25,8 +24,8 @@ class Slc:
         self.cur = SlcDriver()
         self.ip_address = None
 
-    def get_tag_value(self, tag):
-        return self.cur.read_tag(tag)
+    def set_ip_address(self, ip):
+        self.ip_address = ip
 
     def open_connection(self):
         self.cur.open(self.ip_address)
@@ -34,8 +33,19 @@ class Slc:
     def close_connection(self):
         self.cur.close()
 
-    def set_ip_address(self, ip):
-        self.ip_address = ip
+    def get_tag_value(self, tag):
+        return self.cur.read_tag(tag)
+
+    def check_tag(self, tag):
+        if self.ip_address:
+            self.open_connection()
+            try:
+                if self.cur.read_tag(tag):
+                    self.close_connection()
+                    return True
+            except Exception as e:
+                self.close_connection()
+                return False
 
 
 class Xcl:
@@ -55,10 +65,10 @@ class Xcl:
                 self.tag_queue[key].append(tag)
 
     def tags_is_empty(self):
-        state = False
+        state = True
         for val in self.tag_queue.values():
             if len(val) != 0:
-                state = True
+                state = False
 
         return state
 

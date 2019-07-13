@@ -30,12 +30,12 @@ class MainPage(Page):
         Page.__init__(self, *args, **kwargs)
         self.curr_ip_address = None
         self.data_types = ['I', 'O', 'B', 'N', 'F']
+        self.slc_tool = Slc()
+        self.xcl = Xcl()
         self.create_widgets()
         self.clear_warning = None
         self.spreadsheet_vals = []
         self.msg_selector = None
-        self.slc_tool = Slc()
-        self.xcl = Xcl()
         self.get_values_queue()
 
     def create_widgets(self):
@@ -56,7 +56,7 @@ class MainPage(Page):
         clear_queue_btn = Button(button_frame, text='Clear Queue', command=self.clear_confirm_window)
         set_ip_btn = Button(button_frame, text='Set IP Address', command=self.set_ip_window)
 
-        self.ip_label = Label(button_frame, text='Current IP: ' + str(self.curr_ip_address))
+        self.ip_label = Label(button_frame, text='Current IP: ' + str(self.slc_tool.ip_address))
 
         # add_tags_btn.pack(side='left', padx=(5, 0))
         clear_queue_btn.pack(side='left', padx=5)
@@ -172,11 +172,13 @@ class MainPage(Page):
         remove_btn.pack(side='left')
 
         extract_btn = Button(extract_frame, text='EXTRACT', height=5,
-                             bg='grey', font='Helvetica 9 bold', command=self.extract_to_sheet)
+                             bg='grey', font='Helvetica 9 bold',
+                             command=self.extract_to_sheet)
         extract_btn.pack(side='left')
 
         ext_on_trigger_btn = Button(extract_frame, text='EXTRACT on Trigger',
-                                    height=5, bg='grey', font='Helvetica 9 bold', command=self.set_trigger_window)
+                                    height=5, bg='grey', font='Helvetica 9 bold',
+                                    command=self.set_trigger_window)
         ext_on_trigger_btn.pack(side='left', padx=(5, 0))
 
     def set_ip_window(self):
@@ -188,7 +190,8 @@ class MainPage(Page):
 
         ip_label = Label(self.ip_window, text='IP Address:')
         ip_entry = Entry(self.ip_window)
-        ip_submit_btn = Button(self.ip_window, text='Submit', command=lambda: self.set_ip(ip_entry.get()))
+        ip_submit_btn = Button(self.ip_window, text='Submit',
+                               command=lambda: self.set_ip(ip_entry.get()))
 
         ip_label.grid(row=0, column=0, padx=(20,0), pady=(30,0))
         ip_entry.grid(row=0, column=1, pady=(30,0))
@@ -197,8 +200,8 @@ class MainPage(Page):
     def set_ip(self, ip):
         ip_check = scripts.check_connection(ip)
         if ip_check is True:
-            self.curr_ip_address = ip
-            self.ip_label['text'] = 'Current IP: ' + str(self.curr_ip_address)
+            self.slc_tool.set_ip_address(ip)
+            self.ip_label['text'] = 'Current IP: ' + str(self.slc_tool.ip_address)
             self.ip_window.destroy()
         else:
             self.warning_window(ip_check)
@@ -207,6 +210,7 @@ class MainPage(Page):
         self.warn_window = Toplevel(self.master)
         self.warn_window.geometry('350x100')
         self.warn_window.title('Attention!')
+        self.warn_window.grab_set()
 
         warn_label = Label(self.warn_window, text=warning)
         acknowledge_btn = Button(self.warn_window, text='Acknowledge',
@@ -218,7 +222,7 @@ class MainPage(Page):
     def get_values_queue(self):
         self.values_display.config(state='normal')
         self.values_display.delete('1.0', END)
-        if not self.xcl.tags_is_empty():
+        if self.xcl.tags_is_empty():
             self.values_display.insert(END, 'None' + '\n')
         else:
             for val in self.xcl.tag_queue.values():
@@ -238,37 +242,40 @@ class MainPage(Page):
         val_list = []
         check_val = ''
 
-        if len(file_val) > 0:
-            val_list.append('1')
-            if len(word_val) > 0:
+        if self.ip_set_check():
+            if len(file_val) > 0:
                 val_list.append('1')
-                if len(bit_val) > 0:
+                if len(word_val) > 0:
                     val_list.append('1')
+                    if len(bit_val) > 0:
+                        val_list.append('1')
+                    else:
+                        val_list.append('0')
+                    check_val = int(check_val.join(val_list))
+                    if data_val == 'N' or data_val == 'F':
+                        if check_val == 110:
+                            tag = data_val + file_val + ':' + word_val
+                            if not self.xcl.duplicate_tags_check(tag):
+                                if self.slc_tool.check_tag(tag):
+                                    return True
+                            else:
+                                self.values_warning_window('Tag is already in queue!')
+                        else:
+                            self.values_warning_window('No bit in Integer or Float type!')
+                    elif data_val == 'B':
+                        if check_val == 111:
+                            tag = data_val + file_val + ':' + word_val + '/' + bit_val
+                            if not self.xcl.duplicate_tags_check(tag):
+                                if self.slc_tool.check_tag(tag):
+                                    return True
+                            else:
+                                self.values_warning_window('Tag is already in queue!')
+                        else:
+                            self.values_warning_window('Need a bit with Binary type!')
                 else:
-                    val_list.append('0')
-                check_val = int(check_val.join(val_list))
-                if data_val == 'N' or data_val == 'F':
-                    if check_val == 110:
-                        tag = data_val + file_val + ':' + word_val
-                        if not self.xcl.duplicate_tags_check(tag):
-                            return True
-                        else:
-                            self.values_warning_window('Tag is already in queue!')
-                    else:
-                        self.values_warning_window('No bit in Integer or Float type!')
-                elif data_val == 'B':
-                    if check_val == 111:
-                        tag = data_val + file_val + ':' + word_val + '/' + bit_val
-                        if not self.xcl.duplicate_tags_check(tag):
-                            return True
-                        else:
-                            self.values_warning_window('Tag is already in queue!')
-                    else:
-                        self.values_warning_window('Need a bit with Binary type!')
+                    self.values_warning_window('Must have a Word value!')
             else:
-                self.values_warning_window('Must have a Word value!')
-        else:
-            self.values_warning_window('Must have a File value!')
+                self.values_warning_window('Must have a File value!')
 
     def integer_float_add(self, d_val, f_val, w_val):
         full_tag = d_val + f_val + ':' + w_val
@@ -321,7 +328,7 @@ class MainPage(Page):
 
     def set_trigger_window(self):
         self.trigger_window = Toplevel(self.master)
-        self.trigger_window.geometry('350x240')
+        self.trigger_window.geometry('350x300')
         self.trigger_window.title('Set Trigger')
 
         # Frames
@@ -342,6 +349,12 @@ class MainPage(Page):
 
         val_entry_frame = Frame(becomes_frame)
         val_entry_frame.pack(side='top', anchor=W)
+
+        lessthan_entry_frame = Frame(becomes_frame)
+        lessthan_entry_frame.pack(side='top', anchor=W)
+
+        grtrthan_entry_frame = Frame(becomes_frame)
+        grtrthan_entry_frame.pack(side='top', anchor=W)
 
         state_select_frame = Frame(becomes_frame)
         state_select_frame.pack(side='top', anchor=W)
@@ -399,6 +412,18 @@ class MainPage(Page):
         val_entry = Entry(val_entry_frame, width=10)
         val_entry.pack(side='left')
 
+        lessthan_radio = Radiobutton(lessthan_entry_frame, text='Less than', variable=trigger_choice, value=3)
+        lessthan_radio.pack(side='left')
+
+        lessthan_entry = Entry(lessthan_entry_frame, width=10)
+        lessthan_entry.pack(side='left')
+
+        grtrthan_radio = Radiobutton(grtrthan_entry_frame, text='Greater than', variable=trigger_choice, value=4)
+        grtrthan_radio.pack(side='left')
+
+        grtrthan_entry = Entry(grtrthan_entry_frame, width=10)
+        grtrthan_entry.pack(side='left')
+
         state_radio = Radiobutton(state_select_frame, text='State', variable=trigger_choice, value=2)
         state_radio.pack(side='left')
 
@@ -423,41 +448,44 @@ class MainPage(Page):
 
     def extract_to_sheet(self):
         if self.ip_set_check():
-            self.slc_tool.set_ip_address(self.curr_ip_address)
             self.slc_tool.open_connection()
             self.xcl.extract_to_xclfile(self.slc_tool)
             self.slc_tool.close_connection()
 
     def extract_on_trigger(self, d_val, f_val, w_val, b_val, trig_choice, val_entry, state):
-        self.trigger_scanning_window = Toplevel(self.master)
-        self.trigger_scanning_window.geometry('350x100')
-        self.trigger_scanning_window.title('Set Trigger')
-        self.trigger_scanning_window.grab_set()
-
-        scanning_label1 = Label(self.trigger_scanning_window, text='Currently scanning.')
-        scanning_label2 = Label(self.trigger_scanning_window,
-                                text='Will cease when triggered or kill button is clicked')
-        self.scanning_label3 = Label(self.trigger_scanning_window, text='RUNNING', bg='green')
-
-        scan_kill_btn = Button(self.trigger_scanning_window, text='Kill Scan',
-                               command=self.scan_kill)
-
-        scanning_label1.pack(side='top')
-        scanning_label2.pack(side='top')
-        self.scanning_label3.pack(side='top')
-        scan_kill_btn.pack(side='top', pady=(5, 0))
-
         if self.ip_set_check():
-            if len(b_val) > 0:
-                trig_tag = d_val + f_val + ':' + w_val + '/' + b_val
+            if not self.xcl.tags_is_empty():
+                self.trigger_scanning_window = Toplevel(self.master)
+                self.trigger_scanning_window.geometry('350x100')
+                self.trigger_scanning_window.title('Set Trigger')
+                self.trigger_scanning_window.grab_set()
+
+                scanning_label1 = Label(self.trigger_scanning_window, text='Currently scanning.')
+                scanning_label2 = Label(self.trigger_scanning_window,
+                                        text='Will cease when triggered or kill button is clicked')
+                self.scanning_label3 = Label(self.trigger_scanning_window, text='RUNNING', bg='green')
+
+                scan_kill_btn = Button(self.trigger_scanning_window, text='Kill Scan',
+                                       command=self.scan_kill)
+
+                scanning_label1.pack(side='top')
+                scanning_label2.pack(side='top')
+                self.scanning_label3.pack(side='top')
+                scan_kill_btn.pack(side='top', pady=(5, 0))
+
+                if self.ip_set_check():
+                    if len(b_val) > 0:
+                        trig_tag = d_val + f_val + ':' + w_val + '/' + b_val
+                    else:
+                        trig_tag = d_val + f_val + ':' + w_val
+
+                    self.thread1 = StoppableThread(target=lambda: self.look_for_trigger(trig_tag, trig_choice,
+                                                                                        val_entry, state))
+
+                    self.thread1.daemon = True
+                    self.thread1.start()
             else:
-                trig_tag = d_val + f_val + ':' + w_val
-
-            self.thread1 = StoppableThread(target=lambda: self.look_for_trigger(trig_tag, trig_choice,
-                                                                                val_entry, state))
-
-            self.thread1.daemon = True
-            self.thread1.start()
+                self.warning_window('No tags in queue!')
 
     def scan_kill(self):
         self.stop_thread = True
@@ -465,27 +493,27 @@ class MainPage(Page):
         self.trigger_window.destroy()
 
     def look_for_trigger(self, trig_tag, trig_choice, value, state):
-        self.slc_tool.set_ip_address(self.curr_ip_address)
-        self.slc_tool.open_connection()
-        self.stop_thread = False
+        # self.slc_tool.set_ip_address(self.curr_ip_address)
+        if self.ip_set_check():
+            self.slc_tool.open_connection()
+            self.stop_thread = False
 
-        if trig_choice == 1:
-            while not self.stop_thread:
-                if self.slc_tool.get_tag_value(trig_tag) == int(value):
-                    self.xcl.extract_to_xclfile(self.slc_tool)
-                    self.stop_thread = True
-                    self.scanning_label3.config(text='TRIGGERED', bg='red')
-        elif trig_choice == 2:
-            while not self.stop_thread:
-                if self.slc_tool.get_tag_value(trig_tag) == state:
-                    self.xcl.extract_to_xclfile(self.slc_tool)
-                    self.stop_thread = True
-                    self.scanning_label3.config(text='TRIGGERED', bg='red')
-        self.slc_tool.close_connection()
-
+            if trig_choice == 1:
+                while not self.stop_thread:
+                    if self.slc_tool.get_tag_value(trig_tag) == int(value):
+                        self.xcl.extract_to_xclfile(self.slc_tool)
+                        self.stop_thread = True
+                        self.scanning_label3.config(text='TRIGGERED', bg='red')
+            elif trig_choice == 2:
+                while not self.stop_thread:
+                    if self.slc_tool.get_tag_value(trig_tag) == state:
+                        self.xcl.extract_to_xclfile(self.slc_tool)
+                        self.stop_thread = True
+                        self.scanning_label3.config(text='TRIGGERED', bg='red')
+            self.slc_tool.close_connection()
 
     def ip_set_check(self):
-        if self.curr_ip_address:
+        if self.slc_tool.ip_address:
             return True
         else:
             self.warning_window('Set IP address first!')
