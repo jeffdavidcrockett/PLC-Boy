@@ -232,13 +232,39 @@ class MainPage(Page):
         self.values_display.config(state=DISABLED)
 
     def add_tag(self, d_val, f_val, w_val, b_val):
-        if self.tag_pre_check(d_val, f_val, w_val, b_val):
-            if d_val == 'N' or d_val == 'F':
-                self.integer_float_add(d_val, f_val, w_val)
-            if d_val == 'B':
-                self.binary_add(d_val, f_val, w_val, b_val)
+        if d_val == 'N' or d_val == 'F' or d_val == 'B':
+            if self.BNF_pre_check(d_val, f_val, w_val, b_val):
+                if d_val == 'N' or d_val == 'F':
+                    self.integer_float_add(d_val, f_val, w_val)
+                if d_val == 'B':
+                    self.binary_add(d_val, f_val, w_val, b_val)
+            else:
+                self.values_warning_window('Non-existent tag!')
+        elif d_val == 'I' or d_val == 'O':
+            if self.IO_pre_check(d_val, f_val, w_val, b_val):
+                self.input_output_add(d_val, w_val, b_val)
 
-    def tag_pre_check(self, data_val, file_val, word_val, bit_val):
+    def IO_pre_check(self, data_val, file_val, word_val, bit_val):
+        if self.ip_set_check():
+            if len(file_val) == 0:
+                if len(word_val) > 0:
+                    if len(bit_val) > 0:
+                        tag = data_val + ':' + word_val + '/' + bit_val
+                        if not self.xcl.duplicate_tags_check(tag):
+                            if self.slc_tool.check_tag(tag) is True or self.slc_tool.check_tag(tag) is None:
+                                return True
+                            else:
+                                self.values_warning_window('Tag does not exist')
+                        else:
+                            self.values_warning_window('Tag is already in queue!')
+                    else:
+                        self.values_warning_window('Mandatory bit value with Input and Output!')
+                else:
+                    self.values_warning_window('Mandatory word value with Input and Output!')
+            else:
+                self.values_warning_window('No file value with Input and Output!')
+
+    def BNF_pre_check(self, data_val, file_val, word_val, bit_val):
         val_list = []
         check_val = ''
 
@@ -252,11 +278,12 @@ class MainPage(Page):
                     else:
                         val_list.append('0')
                     check_val = int(check_val.join(val_list))
+
                     if data_val == 'N' or data_val == 'F':
                         if check_val == 110:
                             tag = data_val + file_val + ':' + word_val
                             if not self.xcl.duplicate_tags_check(tag):
-                                if self.slc_tool.check_tag(tag):
+                                if self.slc_tool.check_tag(tag) is True or self.slc_tool.check_tag(tag) is None:
                                     return True
                             else:
                                 self.values_warning_window('Tag is already in queue!')
@@ -266,7 +293,7 @@ class MainPage(Page):
                         if check_val == 111:
                             tag = data_val + file_val + ':' + word_val + '/' + bit_val
                             if not self.xcl.duplicate_tags_check(tag):
-                                if self.slc_tool.check_tag(tag):
+                                if self.slc_tool.check_tag(tag) is True or self.slc_tool.check_tag(tag) is None:
                                     return True
                             else:
                                 self.values_warning_window('Tag is already in queue!')
@@ -287,12 +314,20 @@ class MainPage(Page):
         self.xcl.queue_tag(full_tag)
         self.get_values_queue()
 
+    def input_output_add(self, d_val, w_val, b_val):
+        full_tag = d_val + ':' + w_val + '/' + b_val
+        self.xcl.queue_tag(full_tag)
+        self.get_values_queue()
+
     def remove_tag(self, d_val, f_val, w_val, b_val):
         if d_val == 'N' or d_val == 'F':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val)
         elif d_val == 'B':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
+        elif d_val == 'I' or d_val == 'O':
+            self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
         self.get_values_queue()
+
 
     def values_warning_window(self, warning):
         value_warning = Toplevel(self.master)
