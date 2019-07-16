@@ -509,6 +509,7 @@ class MainPage(Page):
                 scan_kill_btn.pack(side='top', pady=(5, 0))
 
                 if self.ip_set_check():
+                    #hello
                     if len(b_val) > 0:
                         trig_tag = d_val + f_val + ':' + w_val + '/' + b_val
                     else:
