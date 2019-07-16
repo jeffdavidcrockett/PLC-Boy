@@ -509,7 +509,6 @@ class MainPage(Page):
                 scan_kill_btn.pack(side='top', pady=(5, 0))
 
                 if self.ip_set_check():
-                    #hello
                     if len(b_val) > 0:
                         trig_tag = d_val + f_val + ':' + w_val + '/' + b_val
                     else:
@@ -543,6 +542,18 @@ class MainPage(Page):
             elif trig_choice == 2:
                 while not self.stop_thread:
                     if self.slc_tool.get_tag_value(trig_tag) == state:
+                        self.xcl.extract_to_xclfile(self.slc_tool)
+                        self.stop_thread = True
+                        self.scanning_label3.config(text='TRIGGERED', bg='red')
+            elif trig_choice == 3:
+                while not self.stop_thread:
+                    if self.slc_tool.get_tag_value(trig_tag) < int(value):
+                        self.xcl.extract_to_xclfile(self.slc_tool)
+                        self.stop_thread = True
+                        self.scanning_label3.config(text='TRIGGERED', bg='red')
+            elif trig_choice == 4:
+                while not self.stop_thread:
+                    if self.slc_tool.get_tag_value(trig_tag) > int(value):
                         self.xcl.extract_to_xclfile(self.slc_tool)
                         self.stop_thread = True
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
