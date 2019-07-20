@@ -328,7 +328,6 @@ class MainPage(Page):
             self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
         self.get_values_queue()
 
-
     def values_warning_window(self, warning):
         value_warning = Toplevel(self.master)
         value_warning.geometry('350x100')
@@ -360,6 +359,12 @@ class MainPage(Page):
         self.xcl.clear_queue()
         self.get_values_queue()
         self.clear_warning.destroy()
+
+    def extract_to_sheet(self):
+        if self.ip_set_check():
+            self.slc_tool.open_connection()
+            self.xcl.extract_to_xclfile(self.slc_tool)
+            self.slc_tool.close_connection()
 
     def set_trigger_window(self):
         self.trigger_window = Toplevel(self.master)
@@ -481,12 +486,6 @@ class MainPage(Page):
         run_btn.pack(side='left', padx=(0, 5))
         cancel_btn.pack(side='left')
 
-    def extract_to_sheet(self):
-        if self.ip_set_check():
-            self.slc_tool.open_connection()
-            self.xcl.extract_to_xclfile(self.slc_tool)
-            self.slc_tool.close_connection()
-
     def extract_on_trigger(self, d_val, f_val, w_val, b_val, trig_choice, val_entry, state):
         if self.ip_set_check():
             if not self.xcl.tags_is_empty():
@@ -528,7 +527,6 @@ class MainPage(Page):
         self.trigger_window.destroy()
 
     def look_for_trigger(self, trig_tag, trig_choice, value, state):
-        # self.slc_tool.set_ip_address(self.curr_ip_address)
         if self.ip_set_check():
             self.slc_tool.open_connection()
             self.stop_thread = False
