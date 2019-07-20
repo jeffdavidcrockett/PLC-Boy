@@ -387,8 +387,8 @@ class MainPage(Page):
         button_frame = Frame(self.trigger_window)
         button_frame.pack(side='top', pady=(20, 0))
 
-        val_entry_frame = Frame(becomes_frame)
-        val_entry_frame.pack(side='top', anchor=W)
+        eql2_entry_frame = Frame(becomes_frame)
+        eql2_entry_frame.pack(side='top', anchor=W)
 
         lessthan_entry_frame = Frame(becomes_frame)
         lessthan_entry_frame.pack(side='top', anchor=W)
@@ -446,11 +446,11 @@ class MainPage(Page):
 
         trigger_choice = IntVar()
 
-        val_radio = Radiobutton(val_entry_frame, text='Value', variable=trigger_choice, value=1)
-        val_radio.pack(side='left')
+        eql2_radio = Radiobutton(eql2_entry_frame, text='Value', variable=trigger_choice, value=1)
+        eql2_radio.pack(side='left')
 
-        val_entry = Entry(val_entry_frame, width=10)
-        val_entry.pack(side='left')
+        eql2_entry = Entry(eql2_entry_frame, width=10)
+        eql2_entry.pack(side='left')
 
         lessthan_radio = Radiobutton(lessthan_entry_frame, text='Less than', variable=trigger_choice, value=3)
         lessthan_radio.pack(side='left')
@@ -478,7 +478,9 @@ class MainPage(Page):
                                                                                            word_entry.get(),
                                                                                            bit_entry.get(),
                                                                                            trigger_choice.get(),
-                                                                                           val_entry.get(),
+                                                                                           eql2_entry.get(),
+                                                                                           lessthan_entry.get(),
+                                                                                           grtrthan_entry.get(),
                                                                                            svar_state.get()))
         cancel_btn = Button(button_frame, text='Cancel',
                             command=self.trigger_window.destroy)
@@ -486,7 +488,7 @@ class MainPage(Page):
         run_btn.pack(side='left', padx=(0, 5))
         cancel_btn.pack(side='left')
 
-    def extract_on_trigger(self, d_val, f_val, w_val, b_val, trig_choice, val_entry, state):
+    def extract_on_trigger(self, d_val, f_val, w_val, b_val, trig_choice, eql2_entry, less_entry, grtr_entry, state):
         if self.ip_set_check():
             if not self.xcl.tags_is_empty():
                 self.trigger_scanning_window = Toplevel(self.master)
@@ -514,7 +516,8 @@ class MainPage(Page):
                         trig_tag = d_val + f_val + ':' + w_val
 
                     self.thread1 = StoppableThread(target=lambda: self.look_for_trigger(trig_tag, trig_choice,
-                                                                                        val_entry, state))
+                                                                                        eql2_entry, less_entry,
+                                                                                        grtr_entry, state))
 
                     self.thread1.daemon = True
                     self.thread1.start()
@@ -526,14 +529,14 @@ class MainPage(Page):
         self.trigger_scanning_window.destroy()
         self.trigger_window.destroy()
 
-    def look_for_trigger(self, trig_tag, trig_choice, value, state):
+    def look_for_trigger(self, trig_tag, trig_choice, eql2_entry, less_entry, grtr_entry, state):
         if self.ip_set_check():
             self.slc_tool.open_connection()
             self.stop_thread = False
 
             if trig_choice == 1:
                 while not self.stop_thread:
-                    if self.slc_tool.get_tag_value(trig_tag) == int(value):
+                    if self.slc_tool.get_tag_value(trig_tag) == int(eql2_entry):
                         self.xcl.extract_to_xclfile(self.slc_tool)
                         self.stop_thread = True
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
@@ -545,13 +548,13 @@ class MainPage(Page):
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
             elif trig_choice == 3:
                 while not self.stop_thread:
-                    if self.slc_tool.get_tag_value(trig_tag) < int(value):
+                    if self.slc_tool.get_tag_value(trig_tag) < int(less_entry):
                         self.xcl.extract_to_xclfile(self.slc_tool)
                         self.stop_thread = True
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
             elif trig_choice == 4:
                 while not self.stop_thread:
-                    if self.slc_tool.get_tag_value(trig_tag) > int(value):
+                    if self.slc_tool.get_tag_value(trig_tag) > int(grtr_entry):
                         self.xcl.extract_to_xclfile(self.slc_tool)
                         self.stop_thread = True
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
