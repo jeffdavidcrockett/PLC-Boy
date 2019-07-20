@@ -543,6 +543,18 @@ class MainPage(Page):
                         self.xcl.extract_to_xclfile(self.slc_tool)
                         self.stop_thread = True
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
+            elif trig_choice == 3:
+                while not self.stop_thread:
+                    if self.slc_tool.get_tag_value(trig_tag) < int(value):
+                        self.xcl.extract_to_xclfile(self.slc_tool)
+                        self.stop_thread = True
+                        self.scanning_label3.config(text='TRIGGERED', bg='red')
+            elif trig_choice == 4:
+                while not self.stop_thread:
+                    if self.slc_tool.get_tag_value(trig_tag) > int(value):
+                        self.xcl.extract_to_xclfile(self.slc_tool)
+                        self.stop_thread = True
+                        self.scanning_label3.config(text='TRIGGERED', bg='red')
             self.slc_tool.close_connection()
 
     def ip_set_check(self):
