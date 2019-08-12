@@ -558,6 +558,7 @@ class MainPage(Page):
                         self.xcl.extract_to_xclfile(self.slc_tool)
                         self.stop_thread = True
                         self.scanning_label3.config(text='TRIGGERED', bg='red')
+                        print 'lol'
             self.slc_tool.close_connection()
 
     def ip_set_check(self):
