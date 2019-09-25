@@ -90,12 +90,6 @@ class Xcl:
 
         return count
 
-    def remove_tag(self, tag):
-        for key in self.tag_queue.keys():
-            if tag in self.tag_queue[key]:
-                tag_index = self.tag_queue[key].index(tag)
-                self.tag_queue[key].pop(tag_index)
-
     def extract_to_xclfile(self, slc_tool):
         wb = xlwt.Workbook()
         ws = wb.add_sheet(self.sheet_name)
@@ -116,3 +110,9 @@ class Xcl:
                 row_start += 1
 
         wb.save(self.file_name)
+
+    def remove_tag(self, tag):
+        for key in self.tag_queue.keys():
+            if tag in self.tag_queue[key]:
+                tag_index = self.tag_queue[key].index(tag)
+                self.tag_queue[key].pop(tag_index)

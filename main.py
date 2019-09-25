@@ -173,7 +173,7 @@ class MainPage(Page):
 
         extract_btn = Button(extract_frame, text='EXTRACT', height=5,
                              bg='grey', font='Helvetica 9 bold',
-                             command=self.extract_to_sheet)
+                             command=self.simple_extract)
         extract_btn.pack(side='left')
 
         ext_on_trigger_btn = Button(extract_frame, text='EXTRACT on Trigger',
@@ -385,7 +385,7 @@ class MainPage(Page):
         self.get_values_queue()
         self.clear_warning.destroy()
 
-    def extract_to_sheet(self):
+    def simple_extract(self):
         if self.ip_set_check():
             self.slc_tool.open_connection()
             self.xcl.extract_to_xclfile(self.slc_tool)
