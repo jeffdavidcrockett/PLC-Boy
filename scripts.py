@@ -51,7 +51,7 @@ class Slc:
 class Xcl:
     def __init__(self):
         self.tag_queue = {'I': [], 'O': [], 'B': [],
-                          'N': [], 'F': []}
+                          'N': [], 'F': [], 'T': []}
         self.style0 = xlwt.easyxf('font: name Arial, color-index red, bold on')
         self.style1 = xlwt.easyxf('font: name Arial')
         self.style2 = xlwt.easyxf('font: name Arial, bold on')

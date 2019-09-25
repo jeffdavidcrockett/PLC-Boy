@@ -29,7 +29,7 @@ class MainPage(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         self.curr_ip_address = None
-        self.data_types = ['I', 'O', 'B', 'N', 'F']
+        self.data_types = ['I', 'O', 'B', 'N', 'F', 'T']
         self.slc_tool = Slc()
         self.xcl = Xcl()
         self.create_widgets()
@@ -40,7 +40,7 @@ class MainPage(Page):
 
     def create_widgets(self):
         # create page description label
-        page_descrip = Label(self, text='Extract to Spreadsheet', font=('Consolas', 24))
+        page_descrip = Label(self, text='Spreadsheet Extraction', font=('Consolas', 24))
         page_descrip.grid(row=1, column=0, pady=(30, 0))
 
         button_frame = Frame(self)
@@ -243,6 +243,9 @@ class MainPage(Page):
         elif d_val == 'I' or d_val == 'O':
             if self.IO_pre_check(d_val, f_val, w_val, b_val):
                 self.input_output_add(d_val, w_val, b_val)
+        elif d_val == 'T':
+            if self.T_pre_check(d_val, f_val, w_val, b_val):
+                self.timer_add(d_val, f_val, w_val, b_val)
 
     def IO_pre_check(self, data_val, file_val, word_val, bit_val):
         if self.ip_set_check():
@@ -304,6 +307,22 @@ class MainPage(Page):
             else:
                 self.values_warning_window('Must have a File value!')
 
+    def T_pre_check(self, data_val, file_val, word_val, bit_val):
+        if self.ip_set_check():
+            if len(file_val) > 0:
+                if len(word_val) > 0:
+                    if len(bit_val) > 0:
+                        tag = data_val + file_val + ':' + word_val + '/' + bit_val
+                        if not self.xcl.duplicate_tags_check(tag):
+                            if self.slc_tool.check_tag(tag) is True or self.slc_tool.check_tag(tag) is None:
+                                return True
+                    else:
+                        self.values_warning_window('Must have a Bit value!')
+                else:
+                    self.values_warning_window('Must have a Word value!')
+            else:
+                self.values_warning_window('Must have a File value!')
+
     def integer_float_add(self, d_val, f_val, w_val):
         full_tag = d_val + f_val + ':' + w_val
         self.xcl.queue_tag(full_tag)
@@ -319,11 +338,17 @@ class MainPage(Page):
         self.xcl.queue_tag(full_tag)
         self.get_values_queue()
 
+    def timer_add(self, d_val, f_val, w_val, b_val):
+        full_tag = d_val + f_val + ':' + w_val + '/' + b_val
+        self.xcl.queue_tag(full_tag)
+        self.get_values_queue()
+
     def remove_tag(self, d_val, f_val, w_val, b_val):
         if d_val == 'N' or d_val == 'F':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val)
-        elif d_val == 'B':
+        elif d_val == 'B' or d_val == 'T':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
+        # delete and merge with B and T
         elif d_val == 'I' or d_val == 'O':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
         self.get_values_queue()
