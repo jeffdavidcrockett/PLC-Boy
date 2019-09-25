@@ -29,7 +29,7 @@ class MainPage(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         self.curr_ip_address = None
-        self.data_types = ['I', 'O', 'B', 'N', 'F', 'T']
+        self.data_types = ['I', 'O', 'B', 'N', 'F', 'T', 'C']
         self.slc_tool = Slc()
         self.xcl = Xcl()
         self.create_widgets()
@@ -237,15 +237,15 @@ class MainPage(Page):
                 if d_val == 'N' or d_val == 'F':
                     self.integer_float_add(d_val, f_val, w_val)
                 if d_val == 'B':
-                    self.binary_add(d_val, f_val, w_val, b_val)
+                    self.binary_timer_counter_add(d_val, f_val, w_val, b_val)
             else:
                 self.values_warning_window('Non-existent tag!')
         elif d_val == 'I' or d_val == 'O':
             if self.IO_pre_check(d_val, f_val, w_val, b_val):
                 self.input_output_add(d_val, w_val, b_val)
-        elif d_val == 'T':
-            if self.T_pre_check(d_val, f_val, w_val, b_val):
-                self.timer_add(d_val, f_val, w_val, b_val)
+        elif d_val == 'T' or d_val == 'C':
+            if self.TC_pre_check(d_val, f_val, w_val, b_val):
+                self.binary_timer_counter_add(d_val, f_val, w_val, b_val)
 
     def IO_pre_check(self, data_val, file_val, word_val, bit_val):
         if self.ip_set_check():
@@ -307,7 +307,7 @@ class MainPage(Page):
             else:
                 self.values_warning_window('Must have a File value!')
 
-    def T_pre_check(self, data_val, file_val, word_val, bit_val):
+    def TC_pre_check(self, data_val, file_val, word_val, bit_val):
         if self.ip_set_check():
             if len(file_val) > 0:
                 if len(word_val) > 0:
@@ -328,7 +328,7 @@ class MainPage(Page):
         self.xcl.queue_tag(full_tag)
         self.get_values_queue()
 
-    def binary_add(self, d_val, f_val, w_val, b_val):
+    def binary_timer_counter_add(self, d_val, f_val, w_val, b_val):
         full_tag = d_val + f_val + ':' + w_val + '/' + b_val
         self.xcl.queue_tag(full_tag)
         self.get_values_queue()
@@ -338,15 +338,10 @@ class MainPage(Page):
         self.xcl.queue_tag(full_tag)
         self.get_values_queue()
 
-    def timer_add(self, d_val, f_val, w_val, b_val):
-        full_tag = d_val + f_val + ':' + w_val + '/' + b_val
-        self.xcl.queue_tag(full_tag)
-        self.get_values_queue()
-
     def remove_tag(self, d_val, f_val, w_val, b_val):
         if d_val == 'N' or d_val == 'F':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val)
-        elif d_val == 'B' or d_val == 'T':
+        elif d_val == 'B' or d_val == 'T' or d_val == 'C':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
         # delete and merge with B and T
         elif d_val == 'I' or d_val == 'O':

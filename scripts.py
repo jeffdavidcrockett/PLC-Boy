@@ -51,7 +51,8 @@ class Slc:
 class Xcl:
     def __init__(self):
         self.tag_queue = {'I': [], 'O': [], 'B': [],
-                          'N': [], 'F': [], 'T': []}
+                          'N': [], 'F': [], 'T': [],
+                          'C': []}
         self.style0 = xlwt.easyxf('font: name Arial, color-index red, bold on')
         self.style1 = xlwt.easyxf('font: name Arial')
         self.style2 = xlwt.easyxf('font: name Arial, bold on')
@@ -81,7 +82,8 @@ class Xcl:
 
     def clear_queue(self):
         self.tag_queue = {'I': [], 'O': [], 'B': [],
-                          'N': [], 'F': []}
+                          'N': [], 'F': [], 'T': [],
+                          'C': []}
 
     def count_queue_tags(self):
         count = 0
