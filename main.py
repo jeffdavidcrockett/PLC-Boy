@@ -40,7 +40,7 @@ class MainPage(Page):
 
     def create_widgets(self):
         # create page description label
-        page_descrip = Label(self, text='Spreadsheet Extraction', font=('Consolas', 24))
+        page_descrip = Label(self, text='PLC Boy Data Extractor', font=('Consolas', 24))
         page_descrip.grid(row=1, column=0, pady=(30, 0))
 
         button_frame = Frame(self)
@@ -52,14 +52,14 @@ class MainPage(Page):
         add_values_frame = Frame(self)
         add_values_frame.grid(row=3, column=0, sticky=E+N)
 
-        # add_tags_btn = Button(button_frame, text='Add Values to Queue', command=self.add_values_window)
         clear_queue_btn = Button(button_frame, text='Clear Queue', command=self.clear_confirm_window)
+        clear_ip_btn = Button(button_frame, text='Clear IP', command=self.clear_ip_window)
         set_ip_btn = Button(button_frame, text='Set IP Address', command=self.set_ip_window)
 
         self.ip_label = Label(button_frame, text='Current IP: ' + str(self.slc_tool.ip_address))
 
-        # add_tags_btn.pack(side='left', padx=(5, 0))
         clear_queue_btn.pack(side='left', padx=5)
+        clear_ip_btn.pack(side='left', padx=(0, 5))
         set_ip_btn.pack(side='left')
         self.ip_label.pack(side='left', padx=(10, 0))
 
@@ -127,30 +127,30 @@ class MainPage(Page):
         bit_entry.pack()
 
         # Frames and widgets for box frame 2
-        through_frame = Frame(box_frame2)
-        through_frame.pack(side='left', expand=False)
+        # through_frame = Frame(box_frame2)
+        # through_frame.pack(side='left', expand=False)
 
-        word_frame2 = Frame(box_frame2)
-        word_frame2.pack(side='left', padx=(15, 0), expand=False)
+        # word_frame2 = Frame(box_frame2)
+        # word_frame2.pack(side='left', padx=(15, 0), expand=False)
 
-        bit_frame2 = Frame(box_frame2)
-        bit_frame2.pack(side='left', padx=(5, 0), expand=False)
+        # bit_frame2 = Frame(box_frame2)
+        # bit_frame2.pack(side='left', padx=(5, 0), expand=False)
 
-        self.through_var = IntVar()
-        through_check = Checkbutton(through_frame, text='Through', variable=self.through_var)
-        through_check.pack(side='left')
-
-        word_label2 = Label(word_frame2, text='Word')
-        word_label2.pack(side='top')
-
-        self.word_entry2 = Entry(word_frame2, width=5)
-        self.word_entry2.pack()
-
-        bit_label2 = Label(bit_frame2, text='Bit')
-        bit_label2.pack(side='top')
-
-        self.bit_entry2 = Entry(bit_frame2, width=5)
-        self.bit_entry2.pack()
+        # self.through_var = IntVar()
+        # through_check = Checkbutton(through_frame, text='Through', variable=self.through_var)
+        # through_check.pack(side='left')
+        #
+        # word_label2 = Label(word_frame2, text='Word')
+        # word_label2.pack(side='top')
+        #
+        # self.word_entry2 = Entry(word_frame2, width=5)
+        # self.word_entry2.pack()
+        #
+        # bit_label2 = Label(bit_frame2, text='Bit')
+        # bit_label2.pack(side='top')
+        #
+        # self.bit_entry2 = Entry(bit_frame2, width=5)
+        # self.bit_entry2.pack()
 
         # Frames and widgets for box frame 3
         submit_frame = Frame(box_frame3)
@@ -186,6 +186,7 @@ class MainPage(Page):
         self.ip_window = Toplevel(self.master)
         self.ip_window.geometry('300x100')
         self.ip_window.title('Set IP Address')
+        self.ip_window.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
         self.ip_window.grab_set()
 
         ip_label = Label(self.ip_window, text='IP Address:')
@@ -205,6 +206,28 @@ class MainPage(Page):
             self.ip_window.destroy()
         else:
             self.warning_window(ip_check)
+
+    def clear_ip_window(self):
+        self.clear_ip_warning = Toplevel(self.master)
+        self.clear_ip_warning.geometry('350x100')
+        self.clear_ip_warning.title('Attention!')
+        self.clear_ip_warning.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
+        self.clear_ip_warning.grab_set()
+
+        warn_label = Label(self.clear_ip_warning, text='Are you sure you want to clear the IP?')
+        ok_btn = Button(self.clear_ip_warning, text='Ok',
+                        command=self.clear_ip)
+        cancel_btn = Button(self.clear_ip_warning, text='Cancel',
+                            command=self.clear_ip_warning.destroy)
+
+        warn_label.pack(pady=(10, 0))
+        ok_btn.pack(pady=(10, 0))
+        cancel_btn.pack(pady=(5, 10))
+
+    def clear_ip(self):
+        self.slc_tool.set_ip_address(None)
+        self.ip_label['text'] = 'Current IP: ' + str(self.slc_tool.ip_address)
+        self.clear_ip_warning.destroy()
 
     def warning_window(self, warning):
         self.warn_window = Toplevel(self.master)
@@ -233,12 +256,13 @@ class MainPage(Page):
 
     def add_tag(self, d_val, f_val, w_val, b_val):
         if d_val == 'N' or d_val == 'F' or d_val == 'B':
-            if self.BNF_pre_check(d_val, f_val, w_val, b_val):
+            result = self.BNF_pre_check(d_val, f_val, w_val, b_val)
+            if result is True:
                 if d_val == 'N' or d_val == 'F':
                     self.integer_float_add(d_val, f_val, w_val)
                 if d_val == 'B':
                     self.binary_timer_counter_add(d_val, f_val, w_val, b_val)
-            else:
+            elif result is False:
                 self.values_warning_window('Non-existent tag!')
         elif d_val == 'I' or d_val == 'O':
             if self.IO_pre_check(d_val, f_val, w_val, b_val):
@@ -288,6 +312,8 @@ class MainPage(Page):
                             if not self.xcl.duplicate_tags_check(tag):
                                 if self.slc_tool.check_tag(tag) is True or self.slc_tool.check_tag(tag) is None:
                                     return True
+                                else:
+                                    return False
                             else:
                                 self.values_warning_window('Tag is already in queue!')
                         else:
@@ -298,6 +324,8 @@ class MainPage(Page):
                             if not self.xcl.duplicate_tags_check(tag):
                                 if self.slc_tool.check_tag(tag) is True or self.slc_tool.check_tag(tag) is None:
                                     return True
+                                else:
+                                    return False
                             else:
                                 self.values_warning_window('Tag is already in queue!')
                         else:
@@ -343,9 +371,8 @@ class MainPage(Page):
             self.xcl.remove_tag(d_val + f_val + ':' + w_val)
         elif d_val == 'B' or d_val == 'T' or d_val == 'C':
             self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
-        # delete and merge with B and T
         elif d_val == 'I' or d_val == 'O':
-            self.xcl.remove_tag(d_val + f_val + ':' + w_val + '/' + b_val)
+            self.xcl.remove_tag(d_val + ':' + w_val + '/' + b_val)
         self.get_values_queue()
 
     def values_warning_window(self, warning):
@@ -364,6 +391,8 @@ class MainPage(Page):
         self.clear_warning = Toplevel(self.master)
         self.clear_warning.geometry('350x100')
         self.clear_warning.title('Attention!')
+        self.clear_warning.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
+        self.clear_warning.grab_set()
 
         warn_label = Label(self.clear_warning, text='Are you sure you want to clear the queue?')
         ok_btn = Button(self.clear_warning, text='Ok',
@@ -390,6 +419,7 @@ class MainPage(Page):
         self.trigger_window = Toplevel(self.master)
         self.trigger_window.geometry('350x300')
         self.trigger_window.title('Set Trigger')
+        self.trigger_window.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
 
         # Frames
         main_label_frame = Frame(self.trigger_window)
@@ -652,6 +682,7 @@ class MainWindow(Frame):
         # create check connection window and widgets
         conn_window = Toplevel(self.master)
         conn_window.geometry('500x150')
+        conn_window.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
         conn_window.grab_set()
 
         ip_label = Label(conn_window, text='IP Address:')
@@ -683,5 +714,6 @@ if __name__ == '__main__':
     root.title('PLC Boy')
     main = MainWindow(root)
     main.pack(side='top', fill='both', expand=True)
-    root.wm_geometry('900x600')
+    root.wm_geometry('450x500')
+    root.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
     root.mainloop()
