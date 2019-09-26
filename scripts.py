@@ -59,7 +59,7 @@ class Xcl:
         self.style2 = xlwt.easyxf('font: name Arial, bold on')
         self.style3 = xlwt.easyxf('font: name Arial; align: horiz left')
         self.sheet_name = 'PLC Values'
-        self.file_name = 'test.xls'
+        self.file_location = None
 
     def queue_tag(self, tag):
         for key in self.tag_queue.keys():
@@ -113,10 +113,13 @@ class Xcl:
                     row_start += 1
                 row_start += 1
 
-        wb.save(self.file_name)
+        wb.save(self.file_location)
 
     def remove_tag(self, tag):
         for key in self.tag_queue.keys():
             if tag in self.tag_queue[key]:
                 tag_index = self.tag_queue[key].index(tag)
                 self.tag_queue[key].pop(tag_index)
+
+    def set_file_location(self, directory):
+        self.file_location = directory + '/plc_data.xls'

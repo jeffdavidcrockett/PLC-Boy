@@ -1,4 +1,5 @@
 from Tkinter import *
+import tkFileDialog
 import scripts
 from scripts import Xcl, Slc
 import threading
@@ -416,6 +417,9 @@ class MainPage(Page):
 
     def simple_extract(self):
         if self.ip_set_check():
+            if self.xcl.file_location is None:
+                root.directory = tkFileDialog.askdirectory()
+                self.xcl.set_file_location(root.directory)
             self.slc_tool.open_connection()
             self.xcl.extract_to_xclfile(self.slc_tool)
             self.slc_tool.close_connection()
@@ -546,6 +550,9 @@ class MainPage(Page):
     def extract_on_trigger(self, d_val, f_val, w_val, b_val, trig_choice, eql2_entry, less_entry, grtr_entry, state):
         if self.ip_set_check():
             if not self.xcl.tags_is_empty():
+                if self.xcl.file_location is None:
+                    root.directory = tkFileDialog.askdirectory()
+                    self.xcl.set_file_location(root.directory)
                 self.trigger_scanning_window = Toplevel(self.master)
                 self.trigger_scanning_window.geometry('350x100')
                 self.trigger_scanning_window.title('Set Trigger')
