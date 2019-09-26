@@ -233,6 +233,7 @@ class MainPage(Page):
         self.warn_window = Toplevel(self.master)
         self.warn_window.geometry('350x100')
         self.warn_window.title('Attention!')
+        self.warn_window.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
         self.warn_window.grab_set()
 
         warn_label = Label(self.warn_window, text=warning)
@@ -270,6 +271,8 @@ class MainPage(Page):
         elif d_val == 'T' or d_val == 'C':
             if self.TC_pre_check(d_val, f_val, w_val, b_val):
                 self.binary_timer_counter_add(d_val, f_val, w_val, b_val)
+            else:
+                self.values_warning_window('Non-existent tag!')
 
     def IO_pre_check(self, data_val, file_val, word_val, bit_val):
         if self.ip_set_check():
@@ -379,6 +382,8 @@ class MainPage(Page):
         value_warning = Toplevel(self.master)
         value_warning.geometry('350x100')
         value_warning.title('Attention!')
+        value_warning.iconbitmap(r'C:\Users\David\smiley_face_noY_icon.ico')
+        value_warning.grab_set()
 
         warn_label = Label(value_warning, text=warning)
         acknowledge_btn = Button(value_warning, text='Acknowledge',

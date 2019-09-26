@@ -1,5 +1,6 @@
 from pycomm.ab_comm.slc import Driver as SlcDriver
 import xlwt
+import datetime
 
 
 def check_connection(ip_address):
@@ -96,7 +97,8 @@ class Xcl:
         wb = xlwt.Workbook()
         ws = wb.add_sheet(self.sheet_name)
 
-        ws.write(0, 0, 'Time', self.style0)
+        ws.write(0, 0, 'Date and Time', self.style0)
+        ws.write(1, 0, str(datetime.datetime.now()), self.style1)
         ws.write(3, 0, 'Tag', self.style0)
         ws.write(3, 1, 'Value', self.style0)
 
